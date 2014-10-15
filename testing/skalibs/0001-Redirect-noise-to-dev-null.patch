@@ -1,0 +1,39 @@
+From 082b9ab7ef0f0e26e6c33dd22f172adac80f9eea Mon Sep 17 00:00:00 2001
+From: Jesse Young <jlyo@jlyo.org>
+Date: Thu, 16 Oct 2014 03:17:14 -0500
+Subject: [PATCH] Redirect noise to /dev/null
+
+---
+ src/systype/find-systype | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/systype/find-systype b/src/systype/find-systype
+index 36122f8..03eb88e 100755
+--- a/src/systype/find-systype
++++ b/src/systype/find-systype
+@@ -81,8 +81,8 @@ then
+     ;;
+   esac
+ else
+-  ./bootcompile trycpp.c
+-  ./bootload trycpp
++  ./bootcompile trycpp.c >&2
++  ./bootload trycpp >&2
+   case `./trycpp` in
+   nextstep)
+     oper="nextstep-`hostinfo | sed -n 's/^[ 	]*NeXT Mach \([^:]*\):.*$/\1/p'`"
+@@ -128,9 +128,9 @@ i686)
+   chip=ppro
+ esac
+ 
+-if ./bootcompile x86cpuid.c
++if ./bootcompile x86cpuid.c >&2
+ then
+-  if ./bootload x86cpuid
++  if ./bootload x86cpuid >&2
+   then
+     x86cpuid="`./x86cpuid | tr /: ..`"
+     case "$x86cpuid" in
+-- 
+2.1.2
+

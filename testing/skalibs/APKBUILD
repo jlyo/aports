@@ -1,0 +1,94 @@
+# Contributor: Jesse Young <jlyo@jlyo.org>
+# Maintainer:
+pkgname=skalibs
+pkgver=1.6.0.0
+pkgrel=1
+pkgdesc="A general-purpose utility library for secure, small C development"
+url="http://skarnet.org/software/skalibs/"
+arch="all"
+license="ISC"
+depends=""
+depends_dev=""
+makedepends="$depends_dev"
+subpackages="$pkgname-dev $pkgname-doc"
+source="http://skarnet.org/software/${pkgname}/${pkgname}-${pkgver}.tar.gz
+        0001-Fix-broken-dynamic-library-symlinks.patch
+        0001-Redirect-noise-to-dev-null.patch"
+
+_builddir="${srcdir}/prog/${pkgname}-${pkgver}"
+
+prepare() {
+    cd "$_builddir"
+
+	for i in $source; do
+		case $i in
+		*.patch) msg $i; patch -p1 -i "$srcdir"/$i || return 1;;
+		esac
+	done
+    echo "${CC} ${CFLAGS}"                      > conf-compile/conf-cc
+    echo "${CC} ${LDFLAGS}"                     > conf-compile/conf-dynld
+    echo "${CC} ${LDFLAGS}"                     > conf-compile/conf-ld
+
+    echo "/etc"                                 > conf-compile/conf-etc
+    echo "${pkgdir}/bin"                        > conf-compile/conf-install-command
+    echo "${pkgdir}/usr/lib/${pkgname}"         > conf-compile/conf-install-library
+    echo "${pkgdir}/lib"                        > conf-compile/conf-install-library.so
+    echo "${pkgdir}/bin"                        > conf-compile/conf-install-libexec
+    echo "${pkgdir}/usr/include/${pkgname}"     > conf-compile/conf-install-include
+    echo "${pkgdir}/usr/share/man"              > conf-compile/conf-install-man
+    echo "${pkgdir}/usr/share/doc/${pkgname}"   > conf-compile/conf-install-doc
+    echo "${pkgdir}/usr/lib/${pkgname}/sysdeps" > conf-compile/conf-install-sysdeps
+
+    echo                                        > conf-compile/conf-stripbins
+    echo                                        > conf-compile/conf-striplibs
+
+    echo /usr/include                           > conf-compile/path-include
+    echo /usr/lib                               > conf-compile/path-library
+    echo /lib                                   > conf-compile/path-library.so
+
+    rm -f conf-compile/flag-slashpackage
+    rm -f conf-compile/flag-allstatic
+
+    # Hack on broken dependencies
+    echo -lstddjb    >> src/libbiguint/deps-lib/biguint
+    echo -lstddjb    >> src/libstdcrypto/deps-lib/stdcrypto
+    echo -lstddjb    >> src/libdatastruct/deps-lib/datastruct
+    echo -lrandom    >> src/libunixonacid/deps-lib/unixonacid
+    echo -lstddjb    >> src/libunixonacid/deps-lib/unixonacid
+    echo -lstdcrypto >> src/libunixonacid/deps-lib/unixonacid
+    echo -lstddjb    >> src/librandom/deps-lib/random
+    echo -lstdcrypto >> src/librandom/deps-lib/random
+}
+
+build() {
+    cd "$_builddir"
+
+    make
+}
+
+package() {
+    cd "$_builddir"
+
+    install -dm755 "${pkgdir}/etc"
+    echo "${pkgdir}/etc" > compile/export/conf-etc
+    make install
+
+    install -dm755 "${pkgdir}/usr/share/doc"
+    cp -r doc "${pkgdir}/usr/share/doc/${pkgname}"
+    install -D -m644 package/COPYING "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}
+
+dev() {
+    mkdir -p "$subpkgdir"/usr
+    mv "$pkgdir"/usr/include "$subpkgdir"/usr
+    mv "$pkgdir"/usr/lib "$subpkgdir"/usr
+}
+md5sums="c983b33a7d2a29ea33bf4ba8f8844735  skalibs-1.6.0.0.tar.gz
+496ba6a01a3b920cbf8427a6b0430ee0  0001-Fix-broken-dynamic-library-symlinks.patch
+273cbb767827594444c7707cc54866a9  0001-Redirect-noise-to-dev-null.patch"
+sha256sums="1c31b47f03c20df0a8c43265e06c7d535aa3538a999b37fe96c5264ab372e34b  skalibs-1.6.0.0.tar.gz
+2131c457af4cd5d5460278cfe9a31543520871e4d3f740ae3def49607083a0ce  0001-Fix-broken-dynamic-library-symlinks.patch
+1c9a4a19fe0b0cca0f70bb28928b73359a8a44598fe2a1bf4596bf6eb960a847  0001-Redirect-noise-to-dev-null.patch"
+sha512sums="a55f977bd7763a88edc87a91aa0638b396ac72b3264bad60f908d281ac1842cc90f96412fdb7bb1106976828c2eb15f0723812db93183ca26351a97bc7041054  skalibs-1.6.0.0.tar.gz
+c7e0c441eca50eaa2ac7b635b55b237e6d3edca142b0b76d3a76606a7ce63e727c8d64eeb2df2618af41704395c12908d4c7d93e332bdcdb20127c55d0c1e5f2  0001-Fix-broken-dynamic-library-symlinks.patch
+d1be087f04205f2b99f99455c9773fa9510666a3484afc5bf5dfa1ffa6e8f8f64b536378442cd6a7848952d509c79926b8bd25931335da82fb16d81985a7547f  0001-Redirect-noise-to-dev-null.patch"
