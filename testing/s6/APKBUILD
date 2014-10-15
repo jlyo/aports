@@ -1,0 +1,70 @@
+# Contributor: Jesse Young <jlyo@jlyo.org>
+# Maintainer:
+pkgname=s6
+pkgver=1.1.3.2
+pkgrel=1
+pkgdesc="A small suite of programs for UNIX, designed to allow process supervision"
+url="http://skarnet.org/software/s6/"
+arch="all"
+license="ISC"
+depends="skalibs execline"
+depends_dev="skalibs-dev execline-dev"
+makedepends="$depends_dev"
+subpackages="$pkgname-dev $pkgname-doc"
+source="http://skarnet.org/software/${pkgname}/${pkgname}-${pkgver}.tar.gz"
+
+_builddir="${srcdir}/admin/${pkgname}-${pkgver}"
+
+prepare() {
+    cd "$_builddir"
+
+    echo /usr/lib/skalibs/sysdeps               > conf-compile/import
+
+    echo "${CC} ${CFLAGS}"                      > conf-compile/conf-cc
+    echo "${CC} ${LDFLAGS}"                     > conf-compile/conf-dynld
+    echo "${CC} ${LDFLAGS}"                     > conf-compile/conf-ld
+
+    echo "${pkgdir}/etc"                        > conf-compile/conf-etc
+    echo "${pkgdir}/bin"                        > conf-compile/conf-install-command
+    echo "${pkgdir}/usr/lib/${pkgname}"         > conf-compile/conf-install-library
+    echo "${pkgdir}/lib"                        > conf-compile/conf-install-library.so
+    echo "${pkgdir}/bin"                        > conf-compile/conf-install-libexec
+    echo "${pkgdir}/usr/include/${pkgname}"     > conf-compile/conf-install-include
+    echo "${pkgdir}/usr/share/man"              > conf-compile/conf-install-man
+    echo "${pkgdir}/usr/share/doc/${pkgname}"   > conf-compile/conf-install-doc
+    echo "${pkgdir}/usr/lib/${pkgname}/sysdeps" > conf-compile/conf-install-sysdeps
+
+    echo                                        > conf-compile/conf-stripbins
+    echo                                        > conf-compile/conf-striplibs
+
+    echo /usr/include                           >  conf-compile/path-include
+    echo /usr/include/skalibs                   >> conf-compile/path-include
+    echo /usr/include/execline                  >> conf-compile/path-include
+    echo /usr/lib                               >  conf-compile/path-library
+    echo /usr/lib/skalibs                       >> conf-compile/path-library
+    echo /usr/lib/execline                      >> conf-compile/path-library
+    echo /lib                                   >  conf-compile/path-library.so
+
+    rm -f conf-compile/flag-slashpackage
+    rm -f conf-compile/flag-allstatic
+}
+
+build() {
+    cd "$_builddir"
+
+    make
+}
+
+package() {
+    cd "$_builddir"
+
+    make install
+
+    install -dm755 "${pkgdir}/usr/share/doc"
+    cp -r doc "${pkgdir}/usr/share/doc/${pkgname}"
+    install -D -m644 package/COPYING "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}
+
+md5sums="5109701f6168bb37da98be2b8eed00f9  s6-1.1.3.2.tar.gz"
+sha256sums="77467d5754ea4d409d400d251d984115998b1c8d40632cf53097d6d1466b5d36  s6-1.1.3.2.tar.gz"
+sha512sums="35b9686885f508c6ff6942d83f5a86238936b05d644fa83b796d5cbf82e47c796501e03442306bad2d509bcb8838d236715d4512171dd117eba8915758a477d1  s6-1.1.3.2.tar.gz"
