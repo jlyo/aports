@@ -1,0 +1,83 @@
+# Contributor: Jesse Young <jlyo@jlyo.org>
+# Maintainer:
+pkgname=s6-dns
+pkgver=0.1.0.0
+pkgrel=1
+pkgdesc="A suite of DNS client programs and libraries for Unix systems"
+url="http://skarnet.org/software/s6-dns/"
+arch="all"
+license="ISC"
+depends="skalibs"
+depends_dev="skalibs-dev"
+makedepends="$depends_dev"
+subpackages="$pkgname-dev $pkgname-doc"
+source="http://skarnet.org/software/${pkgname}/${pkgname}-${pkgver}.tar.gz
+        0001-Fix-broken-dynamic-library-symlinks.patch"
+
+_builddir="${srcdir}/web/${pkgname}-${pkgver}"
+
+prepare() {
+    cd "$_builddir"
+
+	for i in $source; do
+		case $i in
+		*.patch) msg $i; patch -p1 -i "$srcdir"/$i || return 1;;
+		esac
+	done
+
+    echo /usr/lib/skalibs/sysdeps               > conf-compile/import
+
+    echo "${CC} ${CFLAGS}"                      > conf-compile/conf-cc
+    echo "${CC} ${LDLAGS}"                      > conf-compile/conf-dynld
+    echo "${CC} ${LDLAGS}"                      > conf-compile/conf-ld
+
+    echo "${pkgdir}/etc"                        > conf-compile/conf-etc
+    echo "${pkgdir}/bin"                        > conf-compile/conf-install-command
+    echo "${pkgdir}/usr/lib/${pkgname}"         > conf-compile/conf-install-library
+    echo "${pkgdir}/lib"                        > conf-compile/conf-install-library.so
+    echo "${pkgdir}/bin"                        > conf-compile/conf-install-libexec
+    echo "${pkgdir}/usr/include/${pkgname}"     > conf-compile/conf-install-include
+    echo "${pkgdir}/usr/share/man"              > conf-compile/conf-install-man
+    echo "${pkgdir}/usr/share/doc/${pkgname}"   > conf-compile/conf-install-doc
+    echo "${pkgdir}/usr/lib/${pkgname}/sysdeps" > conf-compile/conf-install-sysdeps
+
+    echo                                        > conf-compile/conf-stripbins
+    echo                                        > conf-compile/conf-striplibs
+
+    echo /usr/include                           >  conf-compile/path-include
+    echo /usr/include/skalibs                   >> conf-compile/path-include
+    echo /usr/lib                               >  conf-compile/path-library
+    echo /usr/lib/skalibs                       >> conf-compile/path-library
+    echo /lib                                   >  conf-compile/path-library.so
+
+    rm -f conf-compile/flag-slashpackage
+    rm -f conf-compile/flag-allstatic
+}
+
+build() {
+    cd "$_builddir"
+
+    make
+}
+
+package() {
+    cd "$_builddir"
+
+    make install
+
+    install -dm755 "${pkgdir}/usr/share/doc"
+    cp -r doc "${pkgdir}/usr/share/doc/${pkgname}"
+    install -D -m644 package/COPYING "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}
+
+dev() {
+    mkdir -p "$subpkgdir"/usr
+    mv "$pkgdir"/usr/include "$subpkgdir"/usr
+    mv "$pkgdir"/usr/lib "$subpkgdir"/usr
+}
+md5sums="7ae7bc9392e8668954afa75d4b9f7438  s6-dns-0.1.0.0.tar.gz
+496ba6a01a3b920cbf8427a6b0430ee0  0001-Fix-broken-dynamic-library-symlinks.patch"
+sha256sums="c8401d2111d0b78e12f61035905d746952722e6e540bcc4be5398b6f5da102e5  s6-dns-0.1.0.0.tar.gz
+2131c457af4cd5d5460278cfe9a31543520871e4d3f740ae3def49607083a0ce  0001-Fix-broken-dynamic-library-symlinks.patch"
+sha512sums="767e95c9afde274d1b8804a201075d966c40d990bd3d4d25c77a97e78ef685ca67729718fb0f3bd7eaf99820a518f8c13b70f0cdd16103a78dbc234bb267437b  s6-dns-0.1.0.0.tar.gz
+c7e0c441eca50eaa2ac7b635b55b237e6d3edca142b0b76d3a76606a7ce63e727c8d64eeb2df2618af41704395c12908d4c7d93e332bdcdb20127c55d0c1e5f2  0001-Fix-broken-dynamic-library-symlinks.patch"

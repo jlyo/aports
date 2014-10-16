@@ -1,0 +1,25 @@
+From c51dafb2343abbc338a49e1cd87ec18971ec8a67 Mon Sep 17 00:00:00 2001
+From: Jesse Young <jlyo@jlyo.org>
+Date: Wed, 15 Oct 2014 21:07:55 -0500
+Subject: [PATCH] Fix broken dynamic library symlinks
+
+---
+ package/export | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/package/export b/package/export
+index 892aa8f..364ef46 100755
+--- a/package/export
++++ b/package/export
+@@ -67,7 +67,7 @@ exportdynlibs()
+       $cmd "$srcbase/$dir/$i.$version" "$dest/$i.$version"'{new}'
+       mv -f "$dest/$i.$version"'{new}' "$dest/$i.$version"
+       ln -s "$i.$version" "$dest/$i.$api.$major.$minor"'{new}'
+-      mv -f "$dest/$i.$api.$major.$minor"'{new}' "$dest/$i.api.$major.$minor"
++      mv -f "$dest/$i.$api.$major.$minor"'{new}' "$dest/$i.$api.$major.$minor"
+       ln -s "$i.$api.$major.$minor" "$dest/$i.$api.$major"'{new}'
+       mv -f "$dest/$i.$api.$major"'{new}' "$dest/$i.$api.$major"
+       ln -s "$i.$api.$major" "$dest/$i.$api"'{new}'
+-- 
+2.1.2
+
