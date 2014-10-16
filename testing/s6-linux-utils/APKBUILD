@@ -1,0 +1,67 @@
+# Contributor: Jesse Young <jlyo@jlyo.org>
+# Maintainer:
+pkgname=s6-linux-utils
+pkgver=1.0.3.1
+pkgrel=1
+pkgdesc="A set of minimalistic Linux-specific system utilities"
+url="http://skarnet.org/software/s6-linux-utils/"
+arch="all"
+license="ISC"
+depends="skalibs"
+depends_dev="skalibs-dev"
+makedepends="$depends_dev"
+subpackages="$pkgname-doc"
+source="http://skarnet.org/software/${pkgname}/${pkgname}-${pkgver}.tar.gz"
+
+_builddir="${srcdir}/admin/${pkgname}-${pkgver}"
+
+prepare() {
+    cd "$_builddir"
+
+    echo /usr/lib/skalibs/sysdeps               > conf-compile/import
+
+    echo "${CC} ${CFLAGS}"                      > conf-compile/conf-cc
+    echo "${CC} ${LDLAGS}"                      > conf-compile/conf-dynld
+    echo "${CC} ${LDLAGS}"                      > conf-compile/conf-ld
+
+    echo "${pkgdir}/etc"                        > conf-compile/conf-etc
+    echo "${pkgdir}/bin"                        > conf-compile/conf-install-command
+    echo "${pkgdir}/usr/lib/${pkgname}"         > conf-compile/conf-install-library
+    echo "${pkgdir}/lib"                        > conf-compile/conf-install-library.so
+    echo "${pkgdir}/bin"                        > conf-compile/conf-install-libexec
+    echo "${pkgdir}/usr/include/${pkgname}"     > conf-compile/conf-install-include
+    echo "${pkgdir}/usr/share/man"              > conf-compile/conf-install-man
+    echo "${pkgdir}/usr/share/doc/${pkgname}"   > conf-compile/conf-install-doc
+    echo "${pkgdir}/usr/lib/${pkgname}/sysdeps" > conf-compile/conf-install-sysdeps
+
+    echo                                        > conf-compile/conf-stripbins
+    echo                                        > conf-compile/conf-striplibs
+
+    echo /usr/include                           >  conf-compile/path-include
+    echo /usr/include/skalibs                   >> conf-compile/path-include
+    echo /usr/lib                               >  conf-compile/path-library
+    echo /usr/lib/skalibs                       >> conf-compile/path-library
+    echo /lib                                   >  conf-compile/path-library.so
+
+    rm -f conf-compile/flag-slashpackage
+    rm -f conf-compile/flag-allstatic
+}
+
+build() {
+    cd "$_builddir"
+
+    make
+}
+
+package() {
+    cd "$_builddir"
+
+    make install
+
+    install -dm755 "${pkgdir}/usr/share/doc"
+    cp -r doc "${pkgdir}/usr/share/doc/${pkgname}"
+    install -D -m644 package/COPYING "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}
+md5sums="2e2c0b484dbc9ff8a0237b6dd44dfd5d  s6-linux-utils-1.0.3.1.tar.gz"
+sha256sums="0d50ebf094209f39a666223b3368b2db57e57979018027c68fd7c1f2077827e8  s6-linux-utils-1.0.3.1.tar.gz"
+sha512sums="30f4d17b6744a8eb10fe5e570910a52e241ccbb93b599b6943cbbb7d8b5675d5a4d7c61809eeefc0737ac80da75e9919d643b43e17ffddd3a46eca274fe5510b  s6-linux-utils-1.0.3.1.tar.gz"
