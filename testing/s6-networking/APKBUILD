@@ -1,0 +1,72 @@
+# Contributor: Jesse Young <jlyo@jlyo.org>
+# Maintainer:
+pkgname=s6-networking
+pkgver=0.1.0.0
+pkgrel=1
+pkgdesc="A suite of small networking utilities for Unix systems"
+url="http://skarnet.org/software/s6-networking/"
+arch="all"
+license="ISC"
+depends="skalibs s6-dns execline"
+depends_dev="skalibs-dev execline-dev s6-dns-dev"
+makedepends="$depends_dev"
+subpackages="$pkgname-dev $pkgname-doc"
+source="http://skarnet.org/software/${pkgname}/${pkgname}-${pkgver}.tar.gz"
+
+_builddir="${srcdir}/net/${pkgname}-${pkgver}"
+
+prepare() {
+    cd "$_builddir"
+
+    echo /usr/lib/skalibs/sysdeps               > conf-compile/import
+
+    echo "${CC} ${CFLAGS}"                      > conf-compile/conf-cc
+    echo "${CC} ${LDFLAGS}"                     > conf-compile/conf-dynld
+    echo "${CC} ${LDFLAGS}"                     > conf-compile/conf-ld
+
+    echo "${pkgdir}/etc"                        > conf-compile/conf-etc
+    echo "${pkgdir}/bin"                        > conf-compile/conf-install-command
+    echo "${pkgdir}/usr/lib/${pkgname}"         > conf-compile/conf-install-library
+    echo "${pkgdir}/lib"                        > conf-compile/conf-install-library.so
+    echo "${pkgdir}/bin"                        > conf-compile/conf-install-libexec
+    echo "${pkgdir}/usr/include/${pkgname}"     > conf-compile/conf-install-include
+    echo "${pkgdir}/usr/share/man"              > conf-compile/conf-install-man
+    echo "${pkgdir}/usr/share/doc/${pkgname}"   > conf-compile/conf-install-doc
+    echo "${pkgdir}/usr/lib/${pkgname}/sysdeps" > conf-compile/conf-install-sysdeps
+
+    echo                                        > conf-compile/conf-stripbins
+    echo                                        > conf-compile/conf-striplibs
+
+    echo /usr/include                           >  conf-compile/path-include
+    echo /usr/include/skalibs                   >> conf-compile/path-include
+    echo /usr/include/execline                  >> conf-compile/path-include
+    echo /usr/include/s6-dns                    >> conf-compile/path-include
+    echo /usr/lib                               >  conf-compile/path-library
+    echo /usr/lib/skalibs                       >> conf-compile/path-library
+    echo /usr/lib/execline                      >> conf-compile/path-library
+    echo /usr/lib/s6-dns                        >> conf-compile/path-library
+    echo /lib                                   >  conf-compile/path-library.so
+
+    rm -f conf-compile/flag-slashpackage
+    rm -f conf-compile/flag-allstatic
+}
+
+build() {
+    cd "$_builddir"
+
+    make
+}
+
+package() {
+    cd "$_builddir"
+
+    make install
+
+    install -dm755 "${pkgdir}/usr/share/doc"
+    cp -r doc "${pkgdir}/usr/share/doc/${pkgname}"
+    install -D -m644 package/COPYING "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}
+
+md5sums="779d74f975c9365076ef768c33b68a68  s6-networking-0.1.0.0.tar.gz"
+sha256sums="e7cb6d261532189c065062d7ed97138c8f3d4d59eb6ec95605858818a4a8e9da  s6-networking-0.1.0.0.tar.gz"
+sha512sums="332af45337e8daa0426ba4e6fc935bb4b1d7c06da03ee77690786153a931657e517f08a68486a728920cc5d34d674c15c8381950a1e0836214dc50f2a5fdc5db  s6-networking-0.1.0.0.tar.gz"
