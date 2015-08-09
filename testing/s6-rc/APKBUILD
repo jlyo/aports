@@ -1,0 +1,86 @@
+# Contributor: Jesse Young <jlyo@jlyo.org>
+# Maintainer: Jesse Young <jlyo@jlyo.org>
+pkgname=s6-rc
+pkgver=0_git20150815
+pkgrel=0
+pkgdesc="Service manager for s6-based systems"
+url="http://skarnet.org/software/s6-rc/"
+arch="all"
+license="ISC"
+depends="$pkgname-online $pkgname-offline"
+depends_dev="skalibs-dev s6-dev execline-dev"
+makedepends="$depends_dev"
+install=""
+subpackages="$pkgname-dev $pkgname-doc $pkgname-libs $pkgname-online $pkgname-offline"
+source="https://jlyo.org/alpinelinux/archive/${pkgname}/${pkgname}-${pkgver}.tar.gz"
+giturl="git://git.skarnet.org/s6-rc"
+
+_builddir="$srcdir/$pkgname-$pkgver"
+prepare() {
+	local i
+	cd "$_builddir"
+	for i in $source; do
+		case $i in
+		*.patch) msg $i; patch -p1 -i "$srcdir"/$i || return 1;;
+		esac
+	done
+}
+
+build() {
+	cd "$_builddir"
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--enable-shared \
+		--enable-static \
+		--disable-allstatic \
+		--prefix=/usr \
+		--libdir=/usr/lib \
+        --livedir=/run/s6-rc \
+		|| return 1
+	make || return 1
+}
+
+package() {
+	cd "$_builddir"
+	make DESTDIR="$pkgdir" install || return 1
+	rm -f "$pkgdir"/usr/lib/*.la
+
+    install -dm755 "$pkgdir/usr/share/doc/s6-rc"
+    cp -r doc "$pkgdir/usr/share/doc/s6-rc/doc"
+    cp -r examples "$pkgdir/usr/share/doc/s6-rc/examples"
+    install -m644 AUTHORS "$pkgdir/usr/share/doc/s6-rc/AUTHORS"
+    install -m644 README "$pkgdir/usr/share/doc/s6-rc/README"
+    ln -s ../../licenses/s6-rc/COPYING "$pkgdir/usr/share/doc/s6-rc/COPYING"
+    install -dm755 "$pkgdir/usr/share/licenses/s6-rc"
+    install -m644 COPYING "$pkgdir/usr/share/licenses/s6-rc/COPYING"
+}
+
+online() {
+    depends="s6 $pkgname-libs"
+    install -dm755 "$subpkgdir/usr/bin"
+    mv "$pkgdir/usr/sbin/s6-rc" "$subpkgdir/usr/bin/s6-rc"
+    mv "$pkgdir/usr/sbin/s6-rc-update" "$subpkgdir/usr/bin/s6-rc-update"
+    mv "$pkgdir/usr/bin/s6-rc-dryrun" "$subpkgdir/usr/bin/s6-rc-dryrun"
+    mv "$pkgdir/usr/sbin/s6-rc-init" "$subpkgdir/usr/bin/s6-rc-init"
+    rmdir "$pkgdir/usr/bin" "$pkgdir/usr/sbin" "$pkgdir/usr" || true
+}
+
+offline() {
+    depends="$pkgname-libs"
+    install -dm755 "$subpkgdir/usr/bin"
+    mv "$pkgdir/usr/bin/s6-rc-compile" "$subpkgdir/usr/bin/s6-rc-compile"
+    mv "$pkgdir/usr/bin/s6-rc-db" "$subpkgdir/usr/bin/s6-rc-db"
+    rmdir "$pkgdir/usr/bin" "$pkgdir/usr/sbin" "$pkgdir/usr" || true
+}
+
+libs() {
+    depends=""
+    install -dm755 "$subpkgdir/usr"
+    mv "$pkgdir/usr/lib" "$subpkgdir/usr/lib"
+    rmdir "$pkgdir/usr" || true
+}
+
+md5sums="823d2eb99dd29036ca1c734b5aed2f94  s6-rc-0_git20150815.tar.gz"
+sha256sums="487ddd862ce15a38da57347240064aaeb038da7ffbf4e7d4f33074f1b05e695d  s6-rc-0_git20150815.tar.gz"
+sha512sums="829fc8248bfb034d9a5bb5bad7ec39bf284bbbcb64f45cb35168fcd4f0ab92e2778effce1fa1f82ee90f73fa0dcce497a9ab6154c3dc1ee4d0783c1d3cfa469a  s6-rc-0_git20150815.tar.gz"
