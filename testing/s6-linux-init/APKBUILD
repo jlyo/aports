@@ -1,0 +1,59 @@
+# Contributor: Jesse Young <jlyo@jlyo.org>
+# Maintainer:
+pkgname=s6-linux-init
+pkgver=0.0.1.2
+pkgrel=0
+pkgdesc="Tools to create a s6-based init system on Linux"
+url="http://skarnet.org/software/s6-linux-init/"
+arch="all"
+license="ISC"
+depends="s6-portable-utils s6-linux-utils s6 execline skalibs"
+depends_dev=""
+makedepends="$depends_dev skalibs-dev"
+install=""
+subpackages="$pkgname-dev $pkgname-doc"
+source="http://skarnet.org/software/${pkgname}/${pkgname}-${pkgver}.tar.gz"
+
+_builddir="${srcdir}/${pkgname}-${pkgver}"
+prepare() {
+	local i
+	cd "$_builddir"
+	for i in $source; do
+		case $i in
+		*.patch) msg $i; patch -p1 -i "$srcdir"/$i || return 1;;
+		esac
+	done
+}
+
+build() {
+	cd "$_builddir"
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--enable-shared \
+		--enable-static \
+		--disable-allstatic \
+		--prefix=/usr \
+        --sbindir=/usr/bin \
+		--libdir=/usr/lib \
+		|| return 1
+	make || return 1
+}
+
+package() {
+	cd "$_builddir"
+
+	make DESTDIR="$pkgdir" install || return 1
+    chmod 755 "${pkgdir}/usr/bin/s6-linux-init-maker"
+
+    install -dm755 "${pkgdir}/usr/share/licenses/${pkgname}"
+    install -m644 COPYING "${pkgdir}/usr/share/licenses/${pkgname}/COPYING"
+    install -dm755 "${pkgdir}/usr/share/doc/${pkgname}"
+    install -m644 AUTHORS "${pkgdir}/usr/share/doc/${pkgname}/AUTHORS"
+    install -m644 AUTHORS "${pkgdir}/usr/share/doc/${pkgname}/README"
+    ln -s ../../licenses/${pkgname}/COPYING "${pkgdir}/usr/share/doc/${pkgname}/COPYING"
+    cp -r doc "${pkgdir}/usr/share/doc/${pkgname}/doc"
+}
+md5sums="14d947b64a83574ea009044c2f2e9f0e  s6-linux-init-0.0.1.2.tar.gz"
+sha256sums="011e6e27bb4d84847d25235bff2cc80bfb05a293668a5df0b8536f36c9591717  s6-linux-init-0.0.1.2.tar.gz"
+sha512sums="7bd89106e603c9c13c93ef38132f6759597334ab364a54ae6c3e27af492791940a153f7941f10ec4f84f8114c4df370e870bd3e4eaee28cffd557fa6d0f5cd5b  s6-linux-init-0.0.1.2.tar.gz"
