@@ -1,7 +1,8 @@
 # Contributor: John Regan <john@jrjrtech.com>
 # Maintainer: John Regan <john@jrjrtech.com>
 pkgname=execline
-pkgver=2.1.3.1
+_pkgver=2.1.3.1
+pkgver=2.1.4.0
 pkgrel=0
 pkgdesc="A small scripting language, to be used in place of a shell in non-interactive scripts."
 url="http://skarnet.org/software/$pkgname/"
@@ -12,9 +13,12 @@ depends_dev="skalibs-dev"
 makedepends="$depends_dev"
 install=""
 subpackages="$pkgname-dev"
-source="http://skarnet.org/software/$pkgname/$pkgname-$pkgver.tar.gz"
+source="http://skarnet.org/software/$pkgname/$pkgname-$_pkgver.tar.gz
+        0001-Add-EXECLINE_BLOCK_-_STRING-macros.patch
+        0002-Add-withstdinas.patch"
 
-_builddir="$srcdir/$pkgname-$pkgver"
+
+_builddir="$srcdir/$pkgname-$_pkgver"
 prepare() {
 	local i
 	cd "$_builddir"
@@ -45,6 +49,12 @@ package() {
 	rm -f "$pkgdir"/usr/lib/*.la
 }
 
-md5sums="8d54f85f63ab51fab38960c5f4e65731  execline-2.1.3.1.tar.gz"
-sha256sums="7291d7c0e40f9706fc223abe290bb07a71fcf5fceec079a715e7d25bd2700236  execline-2.1.3.1.tar.gz"
-sha512sums="eddac45805d36f1ecc182f5782ba5b1db917635a761ac81074646666022a1f3963867bed693a7f66180f3616f067ca297fb4cc3e67c938387514112f8d25972a  execline-2.1.3.1.tar.gz"
+md5sums="8d54f85f63ab51fab38960c5f4e65731  execline-2.1.3.1.tar.gz
+36bf6f21a48117812b7af4656dd378a2  0001-Add-EXECLINE_BLOCK_-_STRING-macros.patch
+f490f283552fc07efc9823413017303b  0002-Add-withstdinas.patch"
+sha256sums="7291d7c0e40f9706fc223abe290bb07a71fcf5fceec079a715e7d25bd2700236  execline-2.1.3.1.tar.gz
+c7f35b01005da7c811313abe9a91ab358f5dc2a6e84fb2a1b9cb21202e56283d  0001-Add-EXECLINE_BLOCK_-_STRING-macros.patch
+71b2d04cb1ff25d6c821028d66b95df2b4e427d9d9ae1554d27be25b71675e6d  0002-Add-withstdinas.patch"
+sha512sums="eddac45805d36f1ecc182f5782ba5b1db917635a761ac81074646666022a1f3963867bed693a7f66180f3616f067ca297fb4cc3e67c938387514112f8d25972a  execline-2.1.3.1.tar.gz
+5f8817188c11edad5727904f53493d4bb1544da53277d623eb513187157cf259460b491b9177a359a985af566b63b1db167d777264fb404b8d68c4e016639082  0001-Add-EXECLINE_BLOCK_-_STRING-macros.patch
+c278c5f043c3f8cd51a497c3d5609a1069f99834aa6cb59cf32ed7c5e212356152dad6f6548823078dcccfed90cad828c143332d6be908e21cea499e1bd584b6  0002-Add-withstdinas.patch"

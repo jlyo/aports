@@ -1,0 +1,509 @@
+From d0996a25bd4030875fbc98cabea815dd6741dd0d Mon Sep 17 00:00:00 2001
+From: Laurent Bercot <ska-skaware@skarnet.org>
+Date: Fri, 14 Aug 2015 23:29:04 +0000
+Subject: [PATCH 2/2]  Add withstdinas
+
+---
+ doc/backtick.html                 |   8 +--
+ doc/index.html                    |   3 +-
+ doc/upgrade.html                  |   3 +
+ doc/withstdinas.html              |  67 ++++++++++++++++++++
+ package/deps.mak                  |   7 ++-
+ package/modes                     |   1 +
+ package/targets.mak               |   3 +-
+ src/execline/backtick.c           | 125 ++++++++++++++++++--------------------
+ src/execline/deps-exe/backtick    |   1 -
+ src/execline/deps-exe/withstdinas |   1 +
+ src/execline/forbacktickx.c       |   2 +-
+ src/execline/withstdinas.c        |  93 ++++++++++++++++++++++++++++
+ 12 files changed, 237 insertions(+), 77 deletions(-)
+ create mode 100644 doc/withstdinas.html
+ create mode 100644 src/execline/deps-exe/withstdinas
+ create mode 100644 src/execline/withstdinas.c
+
+diff --git a/doc/backtick.html b/doc/backtick.html
+index df351f2..6aa2f01 100644
+--- a/doc/backtick.html
++++ b/doc/backtick.html
+@@ -19,8 +19,8 @@
+ <h1> The <tt>backtick</tt> program </h1>
+ 
+ <p>
+-<tt>backtick</tt> runs a program and uses its output as the argument of
+-another program.
++<tt>backtick</tt> runs a program and stores its output in an
++environment variable, then executes another program.
+ </p>
+ 
+ <h2> Interface </h2>
+@@ -47,8 +47,8 @@ output as a value. </li>
+ 
+ <ul>
+  <li> <tt>-i</tt>&nbsp;: insist. If <em>prog1</em> crashes or exits non-zero,
+-<tt>backtick</tt> exits with the same exit code (or 111 if <em>prog1</em>
+-crashed). </li>
++<tt>backtick</tt> exits with an
++<a href="exitcodes.html">approximation</a> of the same exit code. </li>
+  <li> <tt>-D&nbsp;<em>default</em></tt>&nbsp;: default value. If
+ <em>prog1</em> crashes or exits non-zero, <em>default</em> is used as
+ <em>variable</em>'s value. If neither the <tt>-i</tt> nor the <tt>-D</tt>
+diff --git a/doc/index.html b/doc/index.html
+index 9772ccb..1b61375 100644
+--- a/doc/index.html
++++ b/doc/index.html
+@@ -131,13 +131,13 @@ to your installation: the shebang lines for your system might be something like
+ <li><a href="redirfd.html">The <tt>redirfd</tt> program</a></li>
+ <li><a href="piperw.html">The <tt>piperw</tt> program</a></li>
+ <li><a href="heredoc.html">The <tt>heredoc</tt> program</a></li>
+-<li><a href="pipeline.html">The <tt>pipeline</tt> program</a></li>
+ <li><a href="wait.html">The <tt>wait</tt> program</a></li>
+ <li><a href="getpid.html">The <tt>getpid</tt> program</a></li>
+ <li><a href="exec.html">The <tt>exec</tt> program</a></li>
+ <li><a href="tryexec.html">The <tt>tryexec</tt> program</a></li>
+ <li><a href="exit.html">The <tt>exit</tt> program</a></li>
+ <li><a href="trap.html">The <tt>trap</tt> program</a></li>
++<li><a href="withstdinas.html">The <tt>withstdinas</tt> program</a></li>
+ </ul>
+ <p>
+  (<a href="el_semicolon.html">Basic block management</a>)
+@@ -150,6 +150,7 @@ to your installation: the shebang lines for your system might be something like
+ <li><a href="ifte.html">The <tt>ifte</tt> program</a></li>
+ <li><a href="ifthenelse.html">The <tt>ifthenelse</tt> program</a></li>
+ <li><a href="backtick.html">The <tt>backtick</tt> program</a></li>
++<li><a href="pipeline.html">The <tt>pipeline</tt> program</a></li>
+ <li><a href="runblock.html">The <tt>runblock</tt> program</a></li>
+ </ul>
+ <p>
+diff --git a/doc/upgrade.html b/doc/upgrade.html
+index 11ecd0a..6013a41 100644
+--- a/doc/upgrade.html
++++ b/doc/upgrade.html
+@@ -22,6 +22,9 @@
+ 
+ <ul>
+  <li> New <tt>EXECLINE_BLOCK_END_STRING</tt> and <tt>EXECLINE_BLOCK_QUOTE_STRING</tt> macros </li>
++ <li> New command: <a href="withstdinas.html">withstdinas</a>. It's a simplification
++of <a href="backtick.html">backtick</a>, which is now implemented as a combination of
++<a href="pipeline.html">pipeline</a> and <a href="withstdinas.html">withstdinas</a>. </li>
+ </ul>
+ 
+ <h2> in 2.1.3.1 </h2>
+diff --git a/doc/withstdinas.html b/doc/withstdinas.html
+new file mode 100644
+index 0000000..29ad1b6
+--- /dev/null
++++ b/doc/withstdinas.html
+@@ -0,0 +1,67 @@
++<html>
++  <head>
++    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
++ <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
++ <meta http-equiv="Content-Language" content="en" />
++ <title>execline: the withstdinas command</title>
++ <meta name="Description" content="execline: the withstdinas command" />
++ <meta name="Keywords" content="execline command withstdinas" />
++ <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
++</head>
++<body>
++
++<p>
++<a href="index.html">execline</a><br />
++<a href="http://skarnet.org/software/">Software</a><br />
++<a href="http://skarnet.org/">skarnet.org</a>
++</p>
++
++<h1> The <tt>withstdinas</tt> program </h1>
++
++<p>
++<tt>withstdinas</tt> reads the entirety of its standard input in an
++environment variable, and runs another program with that additional
++environment variable.
++</p>
++
++<h2> Interface </h2>
++
++<p>
++ In an <a href="execlineb.html">execlineb</a> script:
++</p>
++
++<pre>
++     withstdinas [ -i | -D <em>default</em> ] [ -n ] <em>variable</em> <em>prog...</em>
++</pre>
++
++<ul>
++ <li> <tt>withstdinas</tt> reads its stdin until EOF. </li>
++ <li> It then execs into <em>prog...</em>, with
++<em>variable</em> added to the environment; the value of
++<em>variable</em> is what was read on stdin. </li>
++</ul>
++
++<h2> Options </h2>
++
++<ul>
++ <li> <tt>-i</tt>&nbsp;: insist. If the data on stdin is invalid as
++an environment variable, for instance if it contains a null
++character, <tt>withstdinas</tt> exits 1. </li>
++ <li> <tt>-D&nbsp;<em>default</em></tt>&nbsp;: default value.
++If the data on stdin is invalid, <em>default</em> is used as
++<em>variable</em>'s value. If neither the <tt>-i</tt> nor the <tt>-D</tt>
++option have been given, <tt>withstdinas</tt> execs into
++<em>prog...</em> with <em>variable</em> containing whatever value could be read on stdin,
++cut before the first null character. </li>
++ <li> <tt>-n</tt>&nbsp;: chomp an ending newline off stdin. </li>
++</ul>
++
++<h2> Notes </h2>
++
++<ul>
++ <li> You can start <em>prog...</em> with "import -u <em>variable</em>"
++to perform variable substitution. </li>
++</ul>
++
++</body>
++</html>
+diff --git a/package/deps.mak b/package/deps.mak
+index a558885..d5b5fe9 100644
+--- a/package/deps.mak
++++ b/package/deps.mak
+@@ -3,7 +3,7 @@
+ #
+ 
+ src/execline/background.o src/execline/background.lo: src/execline/background.c src/include/execline/execline.h
+-src/execline/backtick.o src/execline/backtick.lo: src/execline/backtick.c src/include/execline/execline.h
++src/execline/backtick.o src/execline/backtick.lo: src/execline/backtick.c src/include/execline/config.h src/include/execline/execline.h
+ src/execline/cd.o src/execline/cd.lo: src/execline/cd.c
+ src/execline/define.o src/execline/define.lo: src/execline/define.c src/include-local/exlsn.h
+ src/execline/dollarat.o src/execline/dollarat.lo: src/execline/dollarat.c
+@@ -46,6 +46,7 @@ src/execline/tryexec.o src/execline/tryexec.lo: src/execline/tryexec.c src/inclu
+ src/execline/umask.o src/execline/umask.lo: src/execline/umask.c
+ src/execline/unexport.o src/execline/unexport.lo: src/execline/unexport.c
+ src/execline/wait.o src/execline/wait.lo: src/execline/wait.c src/include/execline/execline.h
++src/execline/withstdinas.o src/execline/withstdinas.lo: src/execline/withstdinas.c
+ src/libexecline/el_execsequence.o src/libexecline/el_execsequence.lo: src/libexecline/el_execsequence.c src/include/execline/execline.h
+ src/libexecline/el_getstrict.o src/libexecline/el_getstrict.lo: src/libexecline/el_getstrict.c src/include/execline/execline.h
+ src/libexecline/el_parse.o src/libexecline/el_parse.lo: src/libexecline/el_parse.c src/include/execline/execline.h
+@@ -73,7 +74,7 @@ src/libexecline/exlsn_multidefine.o src/libexecline/exlsn_multidefine.lo: src/li
+ background: private EXTRA_LIBS :=
+ background: src/execline/background.o ${LIBEXECLINE} -lskarnet
+ backtick: private EXTRA_LIBS :=
+-backtick: src/execline/backtick.o ${LIBEXECLINE} -lskarnet
++backtick: src/execline/backtick.o -lskarnet
+ cd: private EXTRA_LIBS :=
+ cd: src/execline/cd.o -lskarnet
+ define: private EXTRA_LIBS :=
+@@ -158,6 +159,8 @@ unexport: private EXTRA_LIBS :=
+ unexport: src/execline/unexport.o -lskarnet
+ wait: private EXTRA_LIBS :=
+ wait: src/execline/wait.o ${LIBEXECLINE} -lskarnet
++withstdinas: private EXTRA_LIBS :=
++withstdinas: src/execline/withstdinas.o -lskarnet
+ libexecline.a.xyzzy: src/libexecline/el_execsequence.o src/libexecline/el_getstrict.o src/libexecline/el_parse.o src/libexecline/el_parse_from_buffer.o src/libexecline/el_parse_from_string.o src/libexecline/el_popenv.o src/libexecline/el_pushenv.o src/libexecline/el_semicolon.o src/libexecline/el_spawn0.o src/libexecline/el_spawn1.o src/libexecline/el_substandrun.o src/libexecline/el_substandrun_str.o src/libexecline/el_substitute.o src/libexecline/el_transform.o src/libexecline/el_vardupl.o src/libexecline/exlsn_define.o src/libexecline/exlsn_elglob.o src/libexecline/exlsn_import.o src/libexecline/exlsn_multidefine.o src/libexecline/exlsn_exlp.o src/libexecline/exlsn_main.o src/libexecline/exlsn_free.o src/libexecline/exlp.o
+ libexecline.so.xyzzy: private EXTRA_LIBS := -lskarnet
+ libexecline.so.xyzzy: src/libexecline/el_execsequence.lo src/libexecline/el_getstrict.lo src/libexecline/el_parse.lo src/libexecline/el_parse_from_buffer.lo src/libexecline/el_parse_from_string.lo src/libexecline/el_popenv.lo src/libexecline/el_pushenv.lo src/libexecline/el_semicolon.lo src/libexecline/el_spawn0.lo src/libexecline/el_spawn1.lo src/libexecline/el_substandrun.lo src/libexecline/el_substandrun_str.lo src/libexecline/el_substitute.lo src/libexecline/el_transform.lo src/libexecline/el_vardupl.lo src/libexecline/exlsn_define.lo src/libexecline/exlsn_elglob.lo src/libexecline/exlsn_import.lo src/libexecline/exlsn_multidefine.lo src/libexecline/exlsn_exlp.lo src/libexecline/exlsn_main.lo src/libexecline/exlsn_free.lo src/libexecline/exlp.lo
+diff --git a/package/modes b/package/modes
+index b1d0883..29a5813 100644
+--- a/package/modes
++++ b/package/modes
+@@ -42,3 +42,4 @@ tryexec			0755
+ umask			0755
+ unexport		0755
+ wait			0755
++withstdinas		0755
+diff --git a/package/targets.mak b/package/targets.mak
+index b26ed04..09ad2f1 100644
+--- a/package/targets.mak
++++ b/package/targets.mak
+@@ -42,7 +42,8 @@ trap \
+ tryexec \
+ umask \
+ unexport \
+-wait
++wait \
++withstdinas
+ 
+ SBIN_TARGETS :=
+ LIBEXEC_TARGETS :=
+diff --git a/src/execline/backtick.c b/src/execline/backtick.c
+index 844882b..41b95d6 100644
+--- a/src/execline/backtick.c
++++ b/src/execline/backtick.c
+@@ -1,92 +1,83 @@
+ /* ISC license. */
+ 
+-#include <sys/types.h>
+-#include <sys/wait.h>
+ #include <unistd.h>
+-#include <skalibs/bytestr.h>
++#include <errno.h>
++#include <skalibs/uint.h>
+ #include <skalibs/sgetopt.h>
+ #include <skalibs/strerr2.h>
+-#include <skalibs/stralloc.h>
+ #include <skalibs/djbunix.h>
++#include <execline/config.h>
+ #include <execline/execline.h>
+ 
+-#define USAGE "backtick [ -i | -D default ] [ -n ] var { prog... } remainder..."
++#define USAGE "backtick [ -i | -D default ] [ -n ] var { prog... } command..."
+ #define dieusage() strerr_dieusage(100, USAGE)
+ 
+-int main (int argc, char const **argv, char const *const *envp)
++int main (int argc, char const *const *argv, char const *const *envp)
+ {
+-  subgetopt_t localopt = SUBGETOPT_ZERO ;
+-  pid_t pid ;
+-  int argc1, fdwstat ;
+-  stralloc modif = STRALLOC_ZERO ;
+-  unsigned int modifstart ;
+-  int insist = 0, chomp = 0 ;
+   char const *def = 0 ;
++  int insist = 0, chomp = 0 ;
+   PROG = "backtick" ;
+-  for (;;)
+   {
+-    register int opt = subgetopt_r(argc, argv, "einD:", &localopt) ;
+-    if (opt < 0) break ;
+-    switch (opt)
++    subgetopt_t l = SUBGETOPT_ZERO ;
++    for (;;)
+     {
+-      case 'i' : insist = 1 ; break ;
+-      case 'n' : chomp = 1 ; break ;
+-      case 'e' : break ; /* compat */
+-      case 'D' : def = localopt.arg ; break ;
+-      default : dieusage() ;
++      register int opt = subgetopt_r(argc, argv, "eniD:", &l) ;
++      if (opt == -1) break ;
++      switch (opt)
++      {
++	case 'e' : break ; /* compat */
++        case 'n' : chomp = 1 ; break ;
++        case 'i' : insist = 1 ; break ;
++        case 'D' : def = l.arg ; break ;
++        default : dieusage() ;
++      }
+     }
++    argc -= l.ind ; argv += l.ind ;
+   }
+-  argc -= localopt.ind ; argv += localopt.ind ;
+-
+   if (argc < 2) dieusage() ;
+-  if (!*argv[0]) strerr_dief1x(100, "empty variable not accepted") ;
+-  if (!stralloc_cats(&modif, argv[0]) || !stralloc_catb(&modif, "=", 1))
+-    strerr_diefu1sys(111, "stralloc_catb") ;
+-  modifstart = modif.len ;
+-  argc-- ; argv++ ;
+-  argc1 = el_semicolon(argv) ;
+-  if (!argc1) strerr_dief1x(100, "empty block") ;
+-  if (argc1 >= argc) strerr_dief1x(100, "unterminated block") ;
+-
+-  argv[argc1] = 0 ;
+-  pid = child_spawn1_pipe(argv[0], argv, envp, &fdwstat, 1) ;
+-  if (!pid) strerr_diefu2sys(111, "spawn ", argv[0]) ;
+-  if (!slurp(&modif, fdwstat)) strerr_diefu1sys(111, "slurp") ;
+-  close(fdwstat) ;
+-  if (wait_pid(pid, &fdwstat) < 0) strerr_diefu1sys(111, "wait_pid") ;
+-
+-  if (wait_status(fdwstat))
++  if (!argv[0][0]) dieusage() ;
++  if (!argv[1][0]) strerr_dief1x(100, "empty block") ;
+   {
+-    if (insist)
+-      if (WIFSIGNALED(fdwstat)) strerr_dief1x(111, "child process crashed") ;
+-      else strerr_dief1x(WEXITSTATUS(fdwstat), "child process exited non-zero") ;
+-    else if (def)
++    unsigned int m = 0, i = 1 ;
++    int fd = dup(0) ;
++    char const *newargv[argc + 15] ;
++    char fmt[UINT_FMT] ;
++    if (fd < 0)
+     {
+-      modif.len = modifstart ;
+-      if (!stralloc_cats(&modif, def)) strerr_diefu1sys(111, "stralloc_catb") ;
++      if (errno != EBADF) strerr_diefu1sys(111, "dup stdin") ;
+     }
+-  }
+-  if (argc == argc1 - 1) return 0 ;
+-  if (!stralloc_0(&modif)) strerr_diefu1sys(111, "stralloc_catb") ;
+-  {
+-    unsigned int reallen = str_len(modif.s) ;
+-    if (reallen < modif.len - 1)
++    else fmt[uint_fmt(fmt, (unsigned int)fd)] = 0 ;
++    newargv[m++] = EXECLINE_BINPREFIX "pipeline" ;
++    newargv[m++] = "--" ;
++    while (argv[i] && argv[i][0] != EXECLINE_BLOCK_END_CHAR && (!EXECLINE_BLOCK_END_CHAR || (argv[i][0] && argv[i][1])))
++      newargv[m++] = argv[i++] ;
++    if (!argv[i]) strerr_dief1x(100, "unterminated block") ;
++    newargv[m++] = "" ; i++ ;
++    newargv[m++] = EXECLINE_BINPREFIX "withstdinas" ;
++    if (insist) newargv[m++] = "-i" ;
++    if (chomp) newargv[m++] = "-n" ;
++    if (def)
+     {
+-      if (insist)
+-        strerr_dief1x(1, "child process output contained a null character") ;
+-      else if (def)
+-      {
+-        modif.len = modifstart ;
+-        if (!stralloc_catb(&modif, def, str_len(def)+1))
+-          strerr_diefu1sys(111, "stralloc_catb") ;
+-        strerr_warnw2x("child process output contained a null character", " - using default instead") ;
+-      }
+-      else
+-        modif.len = reallen + 1 ;
++      newargv[m++] = "-D" ;
++      newargv[m++] = def ;
++    }
++    newargv[m++] = "-!" ;
++    newargv[m++] = "--" ;
++    newargv[m++] = argv[0] ;
++    if (fd < 0)
++    {
++      newargv[m++] = EXECLINE_BINPREFIX "fdclose" ;
++      newargv[m++] = "0" ;
++    }
++    else
++    {
++      newargv[m++] = EXECLINE_BINPREFIX "fdmove" ;
++      newargv[m++] = "0" ;
++      newargv[m++] = fmt ;
+     }
+-    if (chomp && (modif.s[modif.len - 2] == '\n'))
+-      modif.s[--modif.len - 1] = 0 ;
++    while (argv[i]) newargv[m++] = argv[i++] ;
++    newargv[m++] = 0 ;
++    pathexec_run(newargv[0], newargv, envp) ;
++    strerr_dieexec(111, newargv[0]) ;
+   }
+-  pathexec_r(argv + argc1 + 1, envp, env_len(envp), modif.s, modif.len) ;
+-  strerr_dieexec(111, argv[argc1 + 1]) ;
+ }
+diff --git a/src/execline/deps-exe/backtick b/src/execline/deps-exe/backtick
+index 97021b5..e7187fe 100644
+--- a/src/execline/deps-exe/backtick
++++ b/src/execline/deps-exe/backtick
+@@ -1,2 +1 @@
+-${LIBEXECLINE}
+ -lskarnet
+diff --git a/src/execline/deps-exe/withstdinas b/src/execline/deps-exe/withstdinas
+new file mode 100644
+index 0000000..e7187fe
+--- /dev/null
++++ b/src/execline/deps-exe/withstdinas
+@@ -0,0 +1 @@
++-lskarnet
+diff --git a/src/execline/forbacktickx.c b/src/execline/forbacktickx.c
+index 9301581..c0c617a 100644
+--- a/src/execline/forbacktickx.c
++++ b/src/execline/forbacktickx.c
+@@ -16,7 +16,7 @@
+ 
+ #define DELIM_DEFAULT " \n\r\t"
+ 
+-int main (int argc, char const **argv, char const *const *envp)
++int main (int argc, char const *const *argv, char const *const *envp)
+ {
+   char const *delim = DELIM_DEFAULT ;
+   char const *codes = 0 ;
+diff --git a/src/execline/withstdinas.c b/src/execline/withstdinas.c
+new file mode 100644
+index 0000000..c1e3c36
+--- /dev/null
++++ b/src/execline/withstdinas.c
+@@ -0,0 +1,93 @@
++/* ISC license. */
++
++#include <sys/types.h>
++#include <sys/wait.h>
++#include <string.h>
++#include <skalibs/uint64.h>
++#include <skalibs/bytestr.h>
++#include <skalibs/sgetopt.h>
++#include <skalibs/strerr2.h>
++#include <skalibs/stralloc.h>
++#include <skalibs/djbunix.h>
++
++#define USAGE "withstdinas [ -i | -D default ] [ -n ] var remainder..."
++#define dieusage() strerr_dieusage(100, USAGE)
++
++int main (int argc, char const **argv, char const *const *envp)
++{
++  subgetopt_t localopt = SUBGETOPT_ZERO ;
++  stralloc modif = STRALLOC_ZERO ;
++  unsigned int modifstart ;
++  int insist = 0, chomp = 0, reapit = 0 ;
++  char const *def = 0 ;
++  PROG = "withstdinas" ;
++  for (;;)
++  {
++    register int opt = subgetopt_r(argc, argv, "einD:!", &localopt) ;
++    if (opt < 0) break ;
++    switch (opt)
++    {
++      case 'i' : insist = 1 ; break ;
++      case 'n' : chomp = 1 ; break ;
++      case 'D' : def = localopt.arg ; break ;
++      case '!' : reapit = 1 ; break ;
++      default : dieusage() ;
++    }
++  }
++  argc -= localopt.ind ; argv += localopt.ind ;
++
++  if (!argc) dieusage() ;
++  if (!*argv[0] || strchr(argv[0], '=')) strerr_dief1x(100, "invalid variable name") ;
++  if (!stralloc_catb(&modif, "!", 2)
++   || !stralloc_cats(&modif, argv[0])
++   || !stralloc_catb(&modif, "=", 1))
++    strerr_diefu1sys(111, "stralloc_catb") ;
++  modifstart = modif.len ;
++  if (!slurp(&modif, 0)) strerr_diefu1sys(111, "slurp") ;
++  if (reapit)
++  {
++    char const *x = env_get2(envp, "!") ;
++    if (x)
++    {
++      uint64 pid ;
++      int wstat ;
++      if (!uint640_scan(x, &pid)) strerr_dieinvalid(100, "!") ;
++      if (waitpid(pid, &wstat, 0) < 0)
++        strerr_diefu1sys(111, "waitpid") ;
++      if (wait_estatus(wstat))
++      {
++        if (insist)
++          if (WIFSIGNALED(wstat)) strerr_dief1x(wait_estatus(wstat), "child process crashed") ;
++          else strerr_dief1x(wait_estatus(wstat), "child process exited non-zero") ;
++        else if (def)
++        {
++          modif.len = modifstart ;
++          if (!stralloc_cats(&modif, def)) strerr_diefu1sys(111, "stralloc_catb") ;
++        }
++      }
++    }
++  }
++  if (!stralloc_0(&modif)) strerr_diefu1sys(111, "stralloc_catb") ;
++  {
++    unsigned int reallen = str_len(modif.s + 2) ;
++    if (reallen < modif.len - 3)
++    {
++      if (insist)
++        strerr_dief1x(1, "stdin contained a null character") ;
++      else if (def)
++      {
++        modif.len = modifstart ;
++        if (!stralloc_catb(&modif, def, str_len(def)+1))
++          strerr_diefu1sys(111, "stralloc_catb") ;
++        strerr_warnw2x("stdin contained a null character", " - using default instead") ;
++      }
++      else
++        modif.len = reallen + 3 ;
++    }
++    if (chomp && (modif.s[modif.len - 2] == '\n'))
++      modif.s[--modif.len - 1] = 0 ;
++  }
++  if (!argv[1]) return 0 ;
++  pathexec_r(argv + 1, envp, env_len(envp), modif.s + !reapit * 2, modif.len - !reapit * 2) ;
++  strerr_dieexec(111, argv[1]) ;
++}
+-- 
+2.5.0
+
