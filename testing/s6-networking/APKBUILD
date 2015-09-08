@@ -1,7 +1,7 @@
 # Contributor: John Regan <john@jrjrtech.com>
 # Maintainer: John Regan <john@jrjrtech.com>
 pkgname=s6-networking
-pkgver=2.1.0.1
+pkgver=2.1.0.2
 pkgrel=0
 pkgdesc="skarnet.org's UCSPI Unix and TCP tools, access control tools, and network time management utilities."
 url="http://skarnet.org/software/$pkgname/"
@@ -44,6 +44,6 @@ package() {
 	rm -f "$pkgdir"/usr/lib/*.la
 }
 
-md5sums="e3710e78febaac493ad97760970f95d6  s6-networking-2.1.0.1.tar.gz"
-sha256sums="34fc27d30e1f917be99d92b2a52c464d2948479ea679a737e3d00faaf46ceb0e  s6-networking-2.1.0.1.tar.gz"
-sha512sums="ac3aca6e7bfc1ffbda2fdb1cef55f06fcf776beb68288958da5a8acd2923cfe9afbe1540bfa94610be31c8205d77b0d6209668eb14d710b5f3d9073471fe746c  s6-networking-2.1.0.1.tar.gz"
+md5sums="ff3b1527666054431c29df851134c8f8  s6-networking-2.1.0.2.tar.gz"
+sha256sums="47393fb5cd6675e8a220d93ec452618d289f5ecd8e5c6572c6bc699e351f4cc9  s6-networking-2.1.0.2.tar.gz"
+sha512sums="e2e297caa0a300cef9ff17e861747f2ed5dfaeadd87990e7a3b02823dcb623785b6612c626773a363679adb8c205b4ad9529d7a761bb4c82be3830be0fc4be95  s6-networking-2.1.0.2.tar.gz"
