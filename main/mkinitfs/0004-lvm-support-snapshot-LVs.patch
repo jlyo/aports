@@ -1,0 +1,19 @@
+From 4711892875273004772efc215179103d8d9467af Mon Sep 17 00:00:00 2001
+From: Jesse Young <jlyo@jlyo.org>
+Date: Sat, 12 Sep 2015 17:08:24 -0500
+Subject: [PATCH 4/4] lvm: support snapshot LVs
+
+---
+ features.d/lvm.modules | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/features.d/lvm.modules b/features.d/lvm.modules
+index 92f0721..3af8ef9 100644
+--- a/features.d/lvm.modules
++++ b/features.d/lvm.modules
+@@ -1 +1,2 @@
+ kernel/drivers/md/dm-mod.ko
++kernel/drivers/md/dm-snapshot.ko
+-- 
+2.4.1
+

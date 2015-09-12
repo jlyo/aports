@@ -2,7 +2,7 @@
 pkgname=mkinitfs
 pkgver=2.8.0
 _ver=${pkgver%_git*}
-pkgrel=3
+pkgrel=4
 pkgdesc="Tool to generate initramfs images for Alpine"
 url=http://git.alpinelinux.org/cgit/mkinitfs
 depends="acct busybox apk-tools>=2.0 lddtree>=1.25"
@@ -11,6 +11,10 @@ triggers="$pkgname.trigger=/usr/share/kernel/*"
 source="http://dev.alpinelinux.org/archive/$pkgname/$pkgname-$_ver.tar.xz
 	0001-mkinitfs-copy-modules.order-and-modules.builtin-if-t.patch
 	0001-improve-default-config.patch
+	0001-features-raid-add-mdadm-files.patch
+	0002-mkinitfs-add-run-to-the-initfs-base-image.patch
+	0003-init-make-mdadm-quiet.patch
+	0004-lvm-support-snapshot-LVs.patch
 	"
 arch="noarch"
 license="GPL-2"
@@ -38,10 +42,22 @@ package() {
 }
 md5sums="1a321336d97b22257349ddd36884ec34  mkinitfs-2.8.0.tar.xz
 25e11e719a8d90e1e19079c1ba517285  0001-mkinitfs-copy-modules.order-and-modules.builtin-if-t.patch
-63132efa1597953b89e63d4993db1e99  0001-improve-default-config.patch"
+63132efa1597953b89e63d4993db1e99  0001-improve-default-config.patch
+232a00af53cdd08c6f1fbaf450b33c76  0001-features-raid-add-mdadm-files.patch
+8e843539884ff4cc9b6c5ca1746c4091  0002-mkinitfs-add-run-to-the-initfs-base-image.patch
+f2979aaed50ef4c67c4344dbe3fd1cfb  0003-init-make-mdadm-quiet.patch
+8e9be00b9f09f3cb83031aed8852a59c  0004-lvm-support-snapshot-LVs.patch"
 sha256sums="5ffe4c5ec9e0ff4581e5b24301fd30d0964120d6b30ee78ea79f31ff48eeab73  mkinitfs-2.8.0.tar.xz
 892248aa8561596845794f1a3682456eaedcb7a158b19be40292363856c0a826  0001-mkinitfs-copy-modules.order-and-modules.builtin-if-t.patch
-64c5ec7dbd15b39e483b9ff51dc6f033a6902601e16fc420a76265f9eb8f0608  0001-improve-default-config.patch"
+64c5ec7dbd15b39e483b9ff51dc6f033a6902601e16fc420a76265f9eb8f0608  0001-improve-default-config.patch
+66750e48796b43937726fd73b2845a72a228680de25dfb6870b70f90d409d236  0001-features-raid-add-mdadm-files.patch
+f785bdc80ae213bc6b274a837ef67487b03328274ef336e72c338c929e4e42b4  0002-mkinitfs-add-run-to-the-initfs-base-image.patch
+5f70112cd1fedb30e84d22ee05e45870404972ccd1189f7b4ea02c632046f60a  0003-init-make-mdadm-quiet.patch
+445c9e01ff916dbdce1aad0d44ae051d8ca5a8c719c3df730fc54ced846cd4a1  0004-lvm-support-snapshot-LVs.patch"
 sha512sums="c103003f95c7d7d94daa41d0a81b210a0208c93d77203978554fb127a21e2f143b56990865fc53e2c5c732ef663603b297da63d31f915b1e3a3e0f3818aa8f2e  mkinitfs-2.8.0.tar.xz
 4b5e259a5fccef757bc6c7fe79a6ce71e91c210e7f53cfd8e6fbff2737acb3bae7e915a13f3523ff46689480aa0eb7aba5419ea31c7c814e47f4db06faf7746c  0001-mkinitfs-copy-modules.order-and-modules.builtin-if-t.patch
-2571ce198e3f2b951a0a273b74c76af8465306f66051e92ce221ff087531ad6a64540091e43a9015688b7e59f6c1310042d9839cf58c70759624d912923dc922  0001-improve-default-config.patch"
+2571ce198e3f2b951a0a273b74c76af8465306f66051e92ce221ff087531ad6a64540091e43a9015688b7e59f6c1310042d9839cf58c70759624d912923dc922  0001-improve-default-config.patch
+b37af2350b357322a13b0d65b200da155640cf35e598b827c87aa374b41ce74615ed857b2b3630cb882c74d6a41d5f116d5a690c2b653a43340d66a4bc61e631  0001-features-raid-add-mdadm-files.patch
+d36e24dd72f1105127ce5b71957984c82bdb6d7c7c106696933bfec6958eed2c8a57c8f0e8d9784f83f31096c0d03a145521ff3bdeecf3542f7856174e962d5e  0002-mkinitfs-add-run-to-the-initfs-base-image.patch
+f0a7f0d9266dcdfea7ceb0dc38b9547a8baffdc4f0adfd62f7f44ec422a3fb83a6a02becbed6a57bd8b7918514166033891627ee233e5e03e9917d2ac7223cda  0003-init-make-mdadm-quiet.patch
+5f7456c540cdb2def575a1bea9d0958500c5b7ff6e12a0d21fec3c8f6cb9f5d093988388c9785b2846e4906b2eefb4e7c27469e976f3f821135645f5029eb8c1  0004-lvm-support-snapshot-LVs.patch"

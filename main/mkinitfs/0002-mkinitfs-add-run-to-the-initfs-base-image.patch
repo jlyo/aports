@@ -1,0 +1,27 @@
+From 8a9b6fb7f4488f39ec6cbce12c77494f94fd3ad6 Mon Sep 17 00:00:00 2001
+From: Jesse Young <jlyo@jlyo.org>
+Date: Mon, 7 Sep 2015 09:00:26 -0500
+Subject: [PATCH 2/4] mkinitfs: add /run to the initfs base image
+
+mdadm otherwise complains about not being able to lock
+/run/mdadm/map.lock
+---
+ mkinitfs.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/mkinitfs.in b/mkinitfs.in
+index 04dc99c..ced6792 100755
+--- a/mkinitfs.in
++++ b/mkinitfs.in
+@@ -36,7 +36,7 @@ feature_files() {
+ 
+ initfs_base() {
+ 	local i= dirs= glob= file=
+-	for i in dev proc sys sbin bin .modloop lib/modules media/cdrom \
++	for i in dev proc sys sbin bin run .modloop lib/modules media/cdrom \
+ 	    etc/apk media/floppy media/usb newroot; do
+ 		dirs="$dirs $tmpdir/$i"
+ 	done
+-- 
+2.4.1
+
